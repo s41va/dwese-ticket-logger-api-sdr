@@ -13,6 +13,7 @@ import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.Regio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,6 +47,7 @@ public class RegionServiceImpl implements RegionService {
 
     @Override
     public RegionDTO update(RegionUpdateDTO dto) {
+
         if (regionRepository.existsByCodeAndIdNot(dto.getCode(), dto.getId())){
             throw new DuplicateResourceException("region", "code", dto.getId());
 
@@ -55,7 +57,6 @@ public class RegionServiceImpl implements RegionService {
 
         RegionMapper.copyToExistingEntity(dto, region);
         region = regionRepository.save(region);
-
         return RegionMapper.toDTO(region);
 
     }
@@ -75,4 +76,6 @@ public class RegionServiceImpl implements RegionService {
                 .orElseThrow(() -> new ResourceNotFoundException("region", "id", id));
         return RegionMapper.toDetailDTO(region);
     }
+
+
 }

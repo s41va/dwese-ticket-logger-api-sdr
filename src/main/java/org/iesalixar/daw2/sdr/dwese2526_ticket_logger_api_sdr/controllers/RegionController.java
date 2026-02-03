@@ -64,6 +64,21 @@ public class RegionController {
         return ResponseEntity.ok(page);
     }
 
+//    @GetMapping("/all")
+//    public ResponseEntity<?> listAllRegions(
+//            @PageableDefault(size = 10, sort = "name") Pageable pageable,
+//            @RequestParam(defaultValue = "false") boolean unpaged) {
+//
+//
+//        if (unpaged) {
+//            return ResponseEntity.ok(regionService.listAll(Sort.by("name").ascending()));
+//        }
+//
+//
+//        return ResponseEntity.ok(regionService.list(pageable));
+//    }
+
+
     @GetMapping("/detail")
     public String showDetail(@RequestParam("id")Long id,
                              Model model,
@@ -178,7 +193,7 @@ public class RegionController {
         return ResponseEntity.created(location).body(created);
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<RegionDTO> updateRegion(@PathVariable Long id, @Valid @RequestBody RegionUpdateDTO dto){
 
         logger.info("Actualizando region con ID {} (REST) ", id);
