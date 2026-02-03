@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.RegionRepository;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.entities.Region;
@@ -26,14 +27,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 
-@Controller
-@RequestMapping("/regions")
+@RestController
+@RequestMapping("/api/regions")
 public class RegionController {
 
     private static final Logger logger = LoggerFactory.getLogger(RegionController.class);
@@ -48,31 +51,17 @@ public class RegionController {
     private MessageSource messageSource;
 
     @GetMapping
-    public String listRegions(@PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC)Pageable pageable,
-                              Model model){
-        logger.info("Solicitando la lista de todas las regiones... page={}, size={}, sort={}",
+    public ResponseEntity<Page<RegionDTO>> listRegions (
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC)Pageable pageable){
+            
+        logger.info("Listaqndo regiones (REST) page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-
-        try {
-            // Page<RegionDTO> listRegionsDTOs = regionRepository.findAll(pageable).map(RegionMapper::toDTO);
-
-            Page<RegionDTO> listRegionsDTOs = regionService.list(pageable);
-            logger.info("Se han cargado {} regiones en la pagina {}",
-                    listRegionsDTOs.getNumberOfElements(), listRegionsDTOs.getNumber());
-            model.addAttribute("page", listRegionsDTOs);
-
-            String sortParam = "name,asc";
-            if (listRegionsDTOs.getSort().isSorted()) {
-                Sort.Order order = listRegionsDTOs.getSort().iterator().next();
-                sortParam = order.getProperty() + "," + order.getDirection().name().toLowerCase();
-            }
-            model.addAttribute("sortParam", sortParam);
-        }
-        catch (Exception e) {
-            logger.error("Error al listar las regiones: {}", e.getMessage());
-            model.addAttribute("errorMessage", "Error al listar las regiones.");
-        }
-        return "views/region/region-list";
+        
+        Page<RegionDTO> page = regionService.list(pageable);
+        logger.info("Se han cargado {} regiones en la página {}.",
+                page.getNumberOfElements(), page.getNumber());
+        
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/detail")
@@ -166,61 +155,55 @@ public class RegionController {
 
 
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RegionDetailDTO> getRegionById(@PathVariable Long id){
+        logger. info("Mostrando detalle (REST) de la region con id{}: ", id);
 
-    @GetMapping("/new")
-    public String showNewForm(Model model){
-        logger.info("Mostando el nuevo formilario de regiones");
-        model.addAttribute("region", new RegionCreateDTO());
-        return "views/region/region-form";
+        RegionDetailDTO regionDetailDTO = regionService.getDetail(id);
+
+        return ResponseEntity.ok(regionDetailDTO);
     }
 
 
-    @GetMapping("/edit")
-    public String showEditForm(@RequestParam ("id") Long id,Model model, RedirectAttributes redirectAttributes, Locale locale){
-        logger.info("Entrando al metodo showEditForm");
-        try{
-            RegionUpdateDTO regionDTO = regionService.getForEdit(id);
-            model.addAttribute("region", regionDTO);
-            return "views/region/region-list";
+    @PostMapping
+    public ResponseEntity<RegionDTO> createRegion(@Valid @RequestBody RegionCreateDTO dto){
+        RegionDTO created = regionService.create(dto);
 
-        } catch (ResourceNotFoundException ex) {
-            logger.warn("No se encontró la region con ID {}", id);
-            String msg = messageSource.getMessage("msg.region.error.notfound", new Object[]{id}, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
-            return "redirect:/regions";
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
 
-        }catch (Exception e){
-            logger.error("Error al obtener la region con Id {} :{}", id ,e.getMessage());
-            String msg = messageSource.getMessage("msg.region.error.load", null, locale);
-            model.addAttribute("errorMessage", msg);
-            return "redirect:/regions";
-        }
+        return ResponseEntity.created(location).body(created);
+    }
 
+    @PostMapping("/{id}")
+    public ResponseEntity<RegionDTO> updateRegion(@PathVariable Long id, @Valid @RequestBody RegionUpdateDTO dto){
 
+        logger.info("Actualizando region con ID {} (REST) ", id);
+
+        dto.setId(id);
+
+        RegionDTO updated = regionService.update(dto);
+
+        logger.info("Region con Id {} actualizada con éxito.", id);
+
+        return ResponseEntity.ok(updated);
     }
 
 
 
-    @PostMapping("/delete")
+    @DeleteMapping("/{id}")
     //@PreAuthorize("hasRole('ADMIN')")
-    public String deleteRegion(@RequestParam("id") Long id, RedirectAttributes redirectAttributes, Locale locale){
+    public ResponseEntity<Void> deleteRegion(@PathVariable Long id){
         logger.info("Entrando al metodo deleteRegion");
 
-        try{
-            regionService.delete(id);
-            logger.info("Region con Id {} eliminada con exito" ,id);
-            return "redirect:/regions";
-        } catch (ResourceNotFoundException ex) {
-            logger.warn("No se encontró la region con id {}" ,id );
-            String notFound = messageSource.getMessage("msg.region-controller.detail.notFound", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", notFound);
-            return "redirect:/regions";
-        }catch (Exception e){
-            logger.error("Error al eliminar la region con ID {} : {}", id , e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar la region");
-            return "redirect:/regions";
-        }
+        regionService.delete(id);
 
+        logger.info("Region con Id {} eliminada con éxito.", id);
+
+        return ResponseEntity.noContent().build();
     }
 
 }

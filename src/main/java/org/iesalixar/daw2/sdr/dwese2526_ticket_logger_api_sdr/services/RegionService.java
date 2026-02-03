@@ -10,8 +10,8 @@ import org.springframework.data.domain.Pageable;
 public interface RegionService {
     Page<RegionDTO> list(Pageable pageable);
     RegionUpdateDTO getForEdit(Long id);
-    void create(RegionCreateDTO dto);
-    void update(RegionUpdateDTO dto);
+    RegionDTO create(RegionCreateDTO dto);
+    RegionDTO update(RegionUpdateDTO dto);
     void delete(Long id);
     RegionDetailDTO getDetail( Long id);
 }

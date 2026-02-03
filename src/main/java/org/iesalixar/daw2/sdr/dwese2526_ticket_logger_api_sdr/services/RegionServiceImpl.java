@@ -34,17 +34,18 @@ public class RegionServiceImpl implements RegionService {
     }
 
     @Override
-    public void create(RegionCreateDTO dto) {
+    public RegionDTO create(RegionCreateDTO dto) {
         if (regionRepository.existsByCode(dto.getCode())){
             throw new DuplicateResourceException("region", "code", dto.getCode());
         }
         Region region = RegionMapper.toEntity(dto);
-        regionRepository.save(region);
+        region = regionRepository.save(region);
+        return RegionMapper.toDTO(region);
 
     }
 
     @Override
-    public void update(RegionUpdateDTO dto) {
+    public RegionDTO update(RegionUpdateDTO dto) {
         if (regionRepository.existsByCodeAndIdNot(dto.getCode(), dto.getId())){
             throw new DuplicateResourceException("region", "code", dto.getId());
 
@@ -53,7 +54,9 @@ public class RegionServiceImpl implements RegionService {
                 .orElseThrow(() -> new ResourceNotFoundException("region" ,"id", dto.getId()));
 
         RegionMapper.copyToExistingEntity(dto, region);
-        regionRepository.save(region);
+        region = regionRepository.save(region);
+
+        return RegionMapper.toDTO(region);
 
     }
 

@@ -1,7 +1,10 @@
 package org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.exceptions;
 
+import lombok.Getter;
+
 import javax.management.RuntimeMBeanException;
 
+@Getter
 public class InvalidFileException extends RuntimeException {
     private final String resource;
 
