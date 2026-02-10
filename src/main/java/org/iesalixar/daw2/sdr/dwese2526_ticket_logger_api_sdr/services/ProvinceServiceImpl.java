@@ -40,25 +40,27 @@ public class ProvinceServiceImpl implements ProvinceService{
     }
 
     @Override
-    public void create(ProvinceCreateDTO dto) {
-        if (provinceRepository.existsByCode(dto.getCode())) {
+    public ProvinceDTO create(ProvinceCreateDTO dto) {
+        if (provinceRepository.existsByCode(dto.getCode())){
             throw new DuplicateResourceException("province", "code", dto.getCode());
         }
         Province province = ProvinceMapper.toEntity(dto);
-        provinceRepository.save(province);
+        province = provinceRepository.save(province);
+        return ProvinceMapper.toDTO(province);
     }
 
     @Override
-    public void update(ProvinceUpdateDTO dto) {
-        if (provinceRepository.existsByCodeAndIdNot(dto.getCode(), dto.getId())) {
-            throw new DuplicateResourceException("province", "code", dto.getCode());
-        }
+    public ProvinceDTO update(ProvinceUpdateDTO dto) {
+        if (provinceRepository.existsByCodeAndIdNot(dto.getCode(), dto.getId())){
+            throw new DuplicateResourceException("province", "code", dto.getId());
 
+        }
         Province province = provinceRepository.findById(dto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("province", "id", dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("province" ,"id", dto.getId()));
 
         ProvinceMapper.copyToExistingEntity(dto, province);
-        provinceRepository.save(province);
+        province = provinceRepository.save(province);
+        return ProvinceMapper.toDTO(province);
     }
 
     @Override

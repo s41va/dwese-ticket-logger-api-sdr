@@ -11,8 +11,8 @@ public interface ProvinceService {
 
     Page<ProvinceDTO> list(Pageable pageable);
     ProvinceUpdateDTO getForEdit(Long id);
-    void create(ProvinceCreateDTO dto);
-    void update(ProvinceUpdateDTO dto);
+    ProvinceDTO create(ProvinceCreateDTO dto);
+    ProvinceDTO update(ProvinceUpdateDTO dto);
     void delete(Long id);
     ProvinceDetailDTO getDetail(Long id);
     List<RegionDTO> listRegionsForSelect();

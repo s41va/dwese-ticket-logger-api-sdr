@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.ProvinceRepository;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.RegionRepository;
@@ -27,7 +28,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -45,34 +48,18 @@ public class ProvinceController {
     private ProvinceService provinceService;
 
     @GetMapping
-    public String listProvinces(
-            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
-            Model model, Locale locale) {
+    public ResponseEntity<Page<ProvinceDTO>> listProvinces(
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        logger.info("Listando provincias page={}, size={}, sort={}",
+        logger.info("Listando provincias (REST) page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
 
-        try {
-            Page<ProvinceDTO> page = provinceService.list(pageable);
+        Page<ProvinceDTO> page = provinceService.list(pageable);
 
-            logger.info("Se han cargado {} provincias en la página {}.", page.getNumberOfElements(), page.getNumber());
+        logger.info("Se han cargado {} provincia en la página {}.",
+                page.getNumberOfElements(), page.getNumber());
 
-            model.addAttribute("page", page);
-
-            String sortParam = "name,asc";
-            if (page.getSort().isSorted()) {
-                Sort.Order order = page.getSort().iterator().next();
-                sortParam = order.getProperty() + "," + order.getDirection().name().toLowerCase();
-            }
-            model.addAttribute("sortParam", sortParam);
-
-        } catch (Exception e) {
-            logger.error("Error al listar las provincias: {}", e.getMessage());
-            String errorMessage = messageSource.getMessage("msg.province-controller.list.error", null, locale);
-            model.addAttribute("errorMessage", errorMessage);
-        }
-
-        return "views/province/province-list";
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/new")
@@ -235,5 +222,55 @@ public class ProvinceController {
             redirectAttributes.addFlashAttribute("errorMessage", msg);
             return "redirect:/provinces";
         }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProvinceDetailDTO> getProvinceById(@PathVariable Long id){
+        logger. info("Mostrando detalle (REST) de la provincia con id{}: ", id);
+
+        ProvinceDetailDTO provinceDetailDTO = provinceService.getDetail(id);
+
+        return ResponseEntity.ok(provinceDetailDTO);
+    }
+
+    @PostMapping
+    public ResponseEntity<ProvinceDTO> createProvince(@Valid @RequestBody ProvinceCreateDTO dto){
+        ProvinceDTO created = provinceService.create(dto);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProvinceDTO> updateProvince(@PathVariable Long id, @Valid @RequestBody ProvinceUpdateDTO dto){
+
+        logger.info("Actualizando provincia con ID {} (REST) ", id);
+
+        dto.setId(id);
+
+        ProvinceDTO updated = provinceService.update(dto);
+
+        logger.info("Provincia con Id {} actualizada con éxito.", id);
+
+        return ResponseEntity.ok(updated);
+    }
+
+
+
+    @DeleteMapping("/{id}")
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteProvince(@PathVariable Long id){
+        logger.info("Entrando al metodo deleteRegion");
+
+        provinceService.delete(id);
+
+        logger.info("Provincia con Id {} eliminada con éxito.", id);
+
+        return ResponseEntity.noContent().build();
     }
 }
