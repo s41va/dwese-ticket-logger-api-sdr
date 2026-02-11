@@ -1,14 +1,16 @@
 package org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.utils;
 
 import io.jsonwebtoken.Claims;
+
+
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.KeyPair;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.security.KeyPair;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;

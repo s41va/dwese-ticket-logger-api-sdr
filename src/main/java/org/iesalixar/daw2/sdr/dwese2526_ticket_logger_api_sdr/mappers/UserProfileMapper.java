@@ -1,15 +1,15 @@
 package org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.mappers;
 
-import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.UserProfileFormDTO;
+import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.UserProfileDTO;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.entities.User;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.entities.UserProfile;
 
 public class UserProfileMapper {
 
-    public static UserProfileFormDTO toFormDto(User user, UserProfile profile){
+    public static UserProfileDTO toFormDto(User user, UserProfile profile){
         if (user == null){return null;}
 
-        UserProfileFormDTO dto = new UserProfileFormDTO();
+        UserProfileDTO dto = new UserProfileDTO();
         dto.setUserId(user.getId());
         dto.setEmail(user.getEmail());
 
@@ -26,7 +26,7 @@ public class UserProfileMapper {
 
     }
 
-    public static UserProfile toNewEntity(UserProfileFormDTO dto, User user){
+    public static UserProfile toNewEntity(UserProfileDTO dto, User user){
         if (dto == null || user == null){return null;}
 
         UserProfile profile = new UserProfile();
@@ -44,7 +44,7 @@ public class UserProfileMapper {
     }
 
 
-    public static void copyToExistingEntity(UserProfileFormDTO dto, UserProfile profile){
+    public static void copyToExistingEntity(UserProfileDTO dto, UserProfile profile){
         if (dto == null || profile == null){return;}
 
         profile.setFirstName(dto.getFirstName());

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserProfileFormDTO {
+public class UserProfileDTO {
 
     private Long userId;
 
