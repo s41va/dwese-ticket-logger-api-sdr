@@ -19,7 +19,7 @@ public interface RegionService {
     void delete(Long id);
     RegionDetailDTO getDetail( Long id);
 
-    //List<RegionDTO> getAllRegions();
+    List<RegionDTO> getAllRegions();
     //RegionDTO listAll(Sort name);
 
 

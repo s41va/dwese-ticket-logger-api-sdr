@@ -57,44 +57,32 @@ public class RegionController {
     @Autowired
     private MessageSource messageSource;
 
-    @GetMapping
-    public ResponseEntity<Page<RegionDTO>> listRegions (
-            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC)Pageable pageable){
-            
-        logger.info("Listaqndo regiones (REST) page={}, size={}, sort={}",
-                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        
-        Page<RegionDTO> page = regionService.list(pageable);
-        logger.info("Se han cargado {} regiones en la página {}.",
-                page.getNumberOfElements(), page.getNumber());
-        
-        return ResponseEntity.ok(page);
-    }
 
-//    /**
-//     * Obtiene todas las regiones almacenadas en la base de datos.
-//     * * @return Lista de regiones.
-//     */
-//    @Operation(summary = "Obtener todas las regiones", description = "Devuelve una lista de todas las regiones " +
-//            "disponibles en el sistema.")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Lista de regiones recuperada exitosamente",
-//                    content = @Content(mediaType = "application/json",
-//                            array = @ArraySchema(schema = @Schema(implementation = RegionDTO.class)))),
-//            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-//    })
-//    @GetMapping
-//    public ResponseEntity<List<RegionDTO>> getAllRegions() {
-//        logger.info("Solicitando la lista de todas las regiones...");
-//        try {
-//            List<RegionDTO> regions = regionService.getAllRegions();
-//            logger.info("Se han encontrado {} regiones.", regions.size());
-//            return ResponseEntity.ok(regions);
-//        } catch (Exception e) {
-//            logger.error("Error al listar las regiones: {}", e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-//        }
-//    }
+
+    /**
+     * Obtiene todas las regiones almacenadas en la base de datos.
+     * * @return Lista de regiones.
+     */
+    @Operation(summary = "Obtener todas las regiones", description = "Devuelve una lista de todas las regiones " +
+            "disponibles en el sistema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de regiones recuperada exitosamente",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = RegionDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping
+    public ResponseEntity<List<RegionDTO>> getAllRegions() {
+        logger.info("Solicitando la lista de todas las regiones...");
+        try {
+            List<RegionDTO> regions = regionService.getAllRegions();
+            logger.info("Se han encontrado {} regiones.", regions.size());
+            return ResponseEntity.ok(regions);
+        } catch (Exception e) {
+            logger.error("Error al listar las regiones: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
 //    @GetMapping("/all")
 //    public ResponseEntity<?> listAllRegions(

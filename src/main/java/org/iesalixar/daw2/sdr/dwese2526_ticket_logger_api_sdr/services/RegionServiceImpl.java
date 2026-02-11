@@ -79,6 +79,10 @@ public class RegionServiceImpl implements RegionService {
         return RegionMapper.toDetailDTO(region);
     }
 
+    @Override
+    public List<RegionDTO> getAllRegions() {
+        return List.of();
+    }
 
 
 }
