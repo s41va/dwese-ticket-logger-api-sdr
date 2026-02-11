@@ -2,7 +2,9 @@ package org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.KeyPair;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,25 +16,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
+    @Autowired
+    private KeyPair jwtKeyPair;
 
-    /**
-     * Clave secreta para firmar y verificar el token JWT.
-     * La clave se inyecta desde el archivo application.properties para mantener
-     * la seguridad y permitir flexibilidad en entornos diferentes.
-     * * @Value obtiene el valor configurado en application.properties, por ejemplo:
-     * jwt.secret=tu-clave-super-segura-de-al-menos-32-caracteres
-     */
-    @Value("${jwt.secret}")
-    private String secretKeyFromProperties;
-
-    /**
-     * Obtiene la clave de firma (SecretKey) usando la clave secreta inyectada.
-     * Keys.hmacShaKeyFor convierte la clave en un objeto SecretKey.
-     * * Es importante que la clave tenga al menos 256 bits (32 caracteres) para HS256.
-     */
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKeyFromProperties.getBytes());
-    }
+    private static final long JWT_EXPIRATION = 3_600_000L;
 
     /**
      * Extrae el nombre de usuario (claim "sub") del token.
@@ -51,7 +38,7 @@ public class JwtUtil {
 
     public Claims extractAllClaims(String token){
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(jwtKeyPair.getPublic())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -62,17 +49,45 @@ public class JwtUtil {
                 .subject(username)
                 .claim("roles", roles)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .signWith(getSigningKey())
+                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .signWith(jwtKeyPair.getPrivate(), Jwts.SIG.RS256)
                 .compact();
 
     }
-    public boolean validateToken(String token, String username){
-        final String extractedUsername = extractUsername(token);
-        return extractedUsername.equals(username) && !isTokenExpired(token);
+
+    /**
+     * Valida un token JWT verificando:
+     * 1) La firma con la clave pública del certificado (RSA).
+     * 2) Que el subject (username) coincide con el esperado.
+     * 3) Que el token no ha expirado.
+     * * Si el token está mal formado, expirado, o la firma no es válida -> devuelve false.
+     */
+    public boolean validateToken(String token, String username) {
+        try {
+            // 1) Parseo del token + verificación de firma con la PUBLIC KEY del KeyPair
+            Claims claims = Jwts.parser()
+                    .verifyWith(jwtKeyPair.getPublic())  // valida firma RSA
+                    .build()
+                    .parseSignedClaims(token)           // token firmado (JWS)
+                    .getPayload();                      // claims ya verificados
+
+            // 2) Comprobación del subject (sub)
+            String tokenUsername = claims.getSubject();
+            if (tokenUsername == null || !tokenUsername.equals(username)) {
+                return false;
+            }
+
+            // 3) Comprobación de expiración (exp)
+            Date exp = claims.getExpiration();
+            return exp != null && exp.after(new Date());
+
+        } catch (Exception e) {
+            // Firma inválida, token expirado, token manipulado, etc.
+            return false;
+        }
     }
 
-    public boolean isTokenExpired(String token){
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+    public boolean isTokenExpired(Claims claims){
+        return claims.getExpiration().before(new Date());
     }
 }
