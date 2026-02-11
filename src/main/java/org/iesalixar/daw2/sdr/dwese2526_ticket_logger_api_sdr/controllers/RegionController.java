@@ -1,6 +1,12 @@
 package org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.controllers;
 
 import ch.qos.logback.core.pattern.parser.OptionTokenizer;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.RegionCreateDTO;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.RegionDTO;
@@ -16,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.RegionRepository;
@@ -63,6 +70,31 @@ public class RegionController {
         
         return ResponseEntity.ok(page);
     }
+
+//    /**
+//     * Obtiene todas las regiones almacenadas en la base de datos.
+//     * * @return Lista de regiones.
+//     */
+//    @Operation(summary = "Obtener todas las regiones", description = "Devuelve una lista de todas las regiones " +
+//            "disponibles en el sistema.")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Lista de regiones recuperada exitosamente",
+//                    content = @Content(mediaType = "application/json",
+//                            array = @ArraySchema(schema = @Schema(implementation = RegionDTO.class)))),
+//            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+//    })
+//    @GetMapping
+//    public ResponseEntity<List<RegionDTO>> getAllRegions() {
+//        logger.info("Solicitando la lista de todas las regiones...");
+//        try {
+//            List<RegionDTO> regions = regionService.getAllRegions();
+//            logger.info("Se han encontrado {} regiones.", regions.size());
+//            return ResponseEntity.ok(regions);
+//        } catch (Exception e) {
+//            logger.error("Error al listar las regiones: {}", e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//    }
 
 //    @GetMapping("/all")
 //    public ResponseEntity<?> listAllRegions(

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
+
 public interface RegionService {
     Page<RegionDTO> list(Pageable pageable);
     RegionUpdateDTO getForEdit(Long id);
@@ -16,6 +18,10 @@ public interface RegionService {
     RegionDTO update(RegionUpdateDTO dto);
     void delete(Long id);
     RegionDetailDTO getDetail( Long id);
+
+    //List<RegionDTO> getAllRegions();
     //RegionDTO listAll(Sort name);
+
+
 
 }

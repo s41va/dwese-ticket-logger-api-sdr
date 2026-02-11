@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class RegionServiceImpl implements RegionService {
@@ -76,6 +78,7 @@ public class RegionServiceImpl implements RegionService {
                 .orElseThrow(() -> new ResourceNotFoundException("region", "id", id));
         return RegionMapper.toDetailDTO(region);
     }
+
 
 
 }

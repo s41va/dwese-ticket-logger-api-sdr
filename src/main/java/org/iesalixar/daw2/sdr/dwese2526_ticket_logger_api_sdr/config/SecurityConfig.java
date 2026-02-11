@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -44,6 +45,7 @@ public class SecurityConfig {
      * @throws Exception si ocurre un error en la configuración de seguridad.
      */
     @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
@@ -93,6 +95,28 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    @Order(1)
+    public SecurityFilterChain swaggerChain(HttpSecurity http) throws Exception{
+        http
+                .securityMatcher(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/login", "/logout"
+                )
+                .csrf(csrf -> csrf.disable()) // swagger/docs no necesitan csrf
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().hasRole("ADMIN")
+                )
+                // aquí sí activamos login (misma pantalla /login de Spring Security)
+                .formLogin(form -> form.permitAll())
+                .logout(logout -> logout.logoutUrl("/logout"))
+                // importante: swagger con sesión (IF_REQUIRED) para que "recuerde" el login
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+
+        return http.build();
+    }
 
 
 
