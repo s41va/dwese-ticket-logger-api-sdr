@@ -17,6 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -81,8 +84,57 @@ public class RegionServiceImpl implements RegionService {
 
     @Override
     public List<RegionDTO> getAllRegions() {
-        return List.of();
+        // 1. Recuperamos las entidades de la base de datos
+        List<Region> regions = regionRepository.findAll();
+
+        // 2. Convertimos la lista de entidades a DTOs
+        return regions.stream()
+                .map(region -> RegionMapper.toDTO(region))
+                .collect(Collectors.toList());
+    }
+    @Override
+    public RegionDTO getRegionById(Long id) {
+        // El controlador usa Optional.ofNullable, por lo que aquí devolvemos el objeto o null
+        return regionRepository.findById(id)
+                .map(region -> RegionMapper.toDTO(region))
+                .orElse(null);
     }
 
+    @Override
+    public RegionDTO createRegion(RegionCreateDTO regionCreateDTO, Locale locale) {
+        // El controlador captura IllegalArgumentException para devolver un 400 Bad Request
+        if (regionRepository.existsByCode(regionCreateDTO.getCode())) {
+            throw new IllegalArgumentException("El código de la región ya existe.");
+        }
+
+        Region entity = RegionMapper.toEntity(regionCreateDTO);
+        Region savedEntity = regionRepository.save(entity);
+
+        return RegionMapper.toDTO(savedEntity);
+    }
+
+    @Override
+    public RegionDTO updateRegion(Long id, RegionCreateDTO regionCreateDTO, Locale locale) {
+        // Buscamos la región existente o lanzamos excepción para el catch del controlador
+        Region existingRegion = regionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No se puede actualizar: la región no existe."));
+
+        // Actualizamos los campos necesarios
+        existingRegion.setName(regionCreateDTO.getName());
+        existingRegion.setCode(regionCreateDTO.getCode());
+
+        Region updatedEntity = regionRepository.save(existingRegion);
+        return RegionMapper.toDTO(updatedEntity);
+    }
+
+
+    @Override
+    public void deleteRegion(Long id) {
+        if (!regionRepository.existsById(id)){
+            throw new ResourceNotFoundException("region", "id", id);
+
+        }
+        regionRepository.deleteById(id);
+    }
 
 }
