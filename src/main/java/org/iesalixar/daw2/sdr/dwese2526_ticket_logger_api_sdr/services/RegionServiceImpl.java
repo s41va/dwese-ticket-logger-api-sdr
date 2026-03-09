@@ -137,4 +137,9 @@ public class RegionServiceImpl implements RegionService {
         regionRepository.deleteById(id);
     }
 
+    @Override
+    public Region findById(Long id){
+        return regionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("region", "id", id));
+    }
 }

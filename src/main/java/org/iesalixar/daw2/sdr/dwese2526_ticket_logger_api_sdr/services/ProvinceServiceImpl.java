@@ -1,5 +1,4 @@
 package org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.services;
-
 import jakarta.transaction.Transactional;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.*;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.entities.Province;
@@ -7,25 +6,24 @@ import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.entities.Region;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.exceptions.DuplicateResourceException;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.exceptions.ResourceNotFoundException;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.mappers.ProvinceMapper;
-import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.mappers.RegionMapper;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.ProvinceRepository;
-import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.repositories.RegionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @Transactional
-public class ProvinceServiceImpl implements ProvinceService{
+public class ProvinceServiceImpl implements ProvinceService {
 
     @Autowired
     private ProvinceRepository provinceRepository;
 
     @Autowired
-    private RegionRepository regionRepository;
+    private RegionService regionService;
 
     @Override
     public Page<ProvinceDTO> list(Pageable pageable) {
@@ -35,30 +33,36 @@ public class ProvinceServiceImpl implements ProvinceService{
     @Override
     public ProvinceUpdateDTO getForEdit(Long id) {
         Province province = provinceRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("province", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("province", "id", id));
         return ProvinceMapper.toUpdateDTO(province);
     }
 
     @Override
     public ProvinceDTO create(ProvinceCreateDTO dto) {
-        if (provinceRepository.existsByCode(dto.getCode())){
+        if (provinceRepository.existsByCode(dto.getCode())) {
             throw new DuplicateResourceException("province", "code", dto.getCode());
         }
-        Province province = ProvinceMapper.toEntity(dto);
+
+        Region region = regionService.findById(dto.getRegionId());
+        Province province = new Province(dto.getCode(), dto.getName(), region);
         province = provinceRepository.save(province);
         return ProvinceMapper.toDTO(province);
     }
 
     @Override
     public ProvinceDTO update(ProvinceUpdateDTO dto) {
-        if (provinceRepository.existsByCodeAndIdNot(dto.getCode(), dto.getId())){
-            throw new DuplicateResourceException("province", "code", dto.getId());
-
-        }
         Province province = provinceRepository.findById(dto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("province" ,"id", dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("province", "id", dto.getId()));
 
-        ProvinceMapper.copyToExistingEntity(dto, province);
+        if (provinceRepository.existsByCodeAndIdNot(dto.getCode(), dto.getId())) {
+            throw new DuplicateResourceException("province", "code", dto.getCode());
+        }
+
+        Region region = regionService.findById(dto.getRegionId());
+        province.setCode(dto.getCode());
+        province.setName(dto.getName());
+        province.setRegion(region);
+
         province = provinceRepository.save(province);
         return ProvinceMapper.toDTO(province);
     }
@@ -73,16 +77,20 @@ public class ProvinceServiceImpl implements ProvinceService{
 
     @Override
     public ProvinceDetailDTO getDetail(Long id) {
-        Province province = provinceRepository.findByIdWithRegion(id)
+        Province province = provinceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("province", "id", id));
         return ProvinceMapper.toDetailDTO(province);
     }
 
     @Override
-    public List<RegionDTO> listRegionsForSelect() {
-        List<Region> regions = regionRepository.findAll();
-        return RegionMapper.toDTOList(regions);
+    public List<ProvinceDTO> listAll(Sort name) {
+        return provinceRepository.findAll().stream()
+                .map(ProvinceMapper::toDTO)
+                .toList();
     }
 
-
+    @Override
+    public List<RegionDTO> listRegionsForSelect() {
+        return null;
+    }
 }

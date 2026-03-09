@@ -5,6 +5,7 @@ import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.RegionCreateD
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.RegionDTO;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.RegionDetailDTO;
 import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.dtos.RegionUpdateDTO;
+import org.iesalixar.daw2.sdr.dwese2526_ticket_logger_api_sdr.entities.Region;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,7 @@ public interface RegionService {
     RegionDetailDTO getDetail( Long id);
 
 
-
+    Region findById(Long id);
     List<RegionDTO> getAllRegions();
     RegionDTO getRegionById(Long id);
     RegionDTO createRegion(@Valid RegionCreateDTO regionCreateDTO, Locale locale);
